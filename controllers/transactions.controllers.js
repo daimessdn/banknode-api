@@ -4,6 +4,7 @@ const [
   Transaction,
   createTransactionTable,
 ] = require("../models/transactions.models");
+const { Op } = require("sequelize");
 
 const transfer = async (req, res) => {
   const {
@@ -44,6 +45,8 @@ const transfer = async (req, res) => {
 const get_transaction_history = async (req, res) => {
   const { bank_account } = req.params;
 
+  console.log(typeof bank_account);
+
   // get bank account info
   const getBankAccount = await Wallet.findOne({
     where: { name: bank_account },
@@ -51,15 +54,18 @@ const get_transaction_history = async (req, res) => {
 
   const getAllTransaction = await Transaction.findAll({
     where: {
-      transaction_from: getBankAccount.name,
+      [Op.or]: [
+        { transaction_from: getBankAccount.id },
+        { transaction_to: getBankAccount.id },
+      ],
     },
   });
 
   res.status(200).json({
     success: true,
     msg: "successfully created transaction",
-    data: {},
+    data: getAllTransaction,
   });
 };
 
-module.exports = { transfer };
+module.exports = { transfer, get_transaction_history };
