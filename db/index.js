@@ -2,8 +2,12 @@ const Sequelize = require("sequelize");
 const mysql = require("mysql2/promise");
 
 // model
-const [_, createUserTable] = require("../models/users.models");
-
+const [User, createUserTable] = require("../models/users.models");
+const [Wallet, createWalletTable] = require("../models/wallets.models");
+const [
+  Transaction,
+  createTransactionTable,
+] = require("../models/transactions.models");
 // config
 const config = require("./config");
 const { host, port, username, password, database } = config;
@@ -34,6 +38,8 @@ const initialize = async () => {
       console.log("successfuly init sequelize.");
 
       await createUserTable();
+      await createWalletTable();
+      await createTransactionTable();
     })
     .catch((error) => {
       console.error("failed to connect database: ", error);
