@@ -152,10 +152,13 @@ const get_recent_transfer = async (req, res, next) => {
       attributes: ["id", "name", "email"],
     });
 
-    getRecentUsers.push({
-      ...getRecipientWallet.dataValues,
-      user_details: { ...getRecipientUser.dataValues },
-    });
+    const recentUsersName = getRecentUsers.map((recent) => recent.name);
+    if (!recentUsersName.includes(getRecipientWallet.name)) {
+      getRecentUsers.push({
+        ...getRecipientWallet.dataValues,
+        user_details: { ...getRecipientUser.dataValues },
+      });
+    }
   }
 
   res.status(200).json({

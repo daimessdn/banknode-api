@@ -65,6 +65,7 @@ const get_transaction_history = async (req, res) => {
           { transaction_to: getBankAccount.id },
         ],
       },
+      order: [["createdAt", "DESC"]],
     });
     getAllTransactions = getAllTransactions.map(
       (transaction) => transaction.dataValues
