@@ -77,6 +77,9 @@ const login = async (req, res, next) => {
   try {
     const { email, password } = req.body;
 
+    console.log("ini email,", email);
+    console.log("ini password,", password);
+
     // check existing users
     const getUser = await User.findOne({ where: { email } });
     if (!getUser) {
@@ -89,17 +92,24 @@ const login = async (req, res, next) => {
       throw new Error("password doesn't exist.");
     }
 
+    const userWallet = await Wallet.findOne({ where: { user_id: getUser.id } });
+
     const accessToken = await jwt.sign(
       {
         exp: Math.floor(Date.now() / 1000) + 60 * 60 * 7 * 24,
-        data: { nama: getUser.nama, email },
+        data: {
+          id: getUser.id,
+          name: getUser.name,
+          email,
+          wallet_account: userWallet.name,
+        },
       },
       process.env.JWT_SECRET
     );
 
     res.json({
       success: true,
-      msg: "berhasil login.",
+      msg: "successfully login.",
       data: { token: accessToken },
     });
   } catch (error) {
@@ -110,6 +120,18 @@ const login = async (req, res, next) => {
   }
 };
 
+const get_walet_info = async (req, res, next) => {
+  const { user_id } = req.params;
+
+  const getWallet = await Wallet.findOne({ where: { id: user_id } });
+
+  res.status(200).json({
+    success: true,
+    msg: "successfully get wallet info.",
+    data: getWallet,
+  });
+};
+
 const get_all_users = (req, res) => {
   res.status(200).json({
     msg: "hello, world!",
@@ -118,6 +140,7 @@ const get_all_users = (req, res) => {
 
 module.exports = {
   get_all_users,
+  get_walet_info,
 
   register,
   login,
