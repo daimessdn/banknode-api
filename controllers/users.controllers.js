@@ -5,6 +5,7 @@ require("dotenv").config();
 
 const [User] = require("../models/users.models");
 const [Wallet] = require("../models/wallets.models");
+const [Transaction] = require("../models/transactions.models");
 
 const generateRandomWalletNumber = () => {
   return (
@@ -132,15 +133,49 @@ const get_walet_info = async (req, res, next) => {
   });
 };
 
+const get_recent_transfer = async (req, res, next) => {
+  const { wallet_account } = req.params;
+  const getWallet = await Wallet.findOne({ where: { name: wallet_account } });
+  const getAllRecentTransfers = await Transaction.findAll({
+    where: { transaction_from: getWallet.id },
+  });
+
+  const getRecentUsers = [];
+
+  for (let i = 0; i < getAllRecentTransfers.length; i++) {
+    const getRecipientWallet = await Wallet.findOne({
+      where: { id: getAllRecentTransfers[i].transaction_to },
+      attributes: ["id", "name", "type", "user_id"],
+    });
+    const getRecipientUser = await User.findOne({
+      where: { id: getRecipientWallet.user_id },
+      attributes: ["id", "name", "email"],
+    });
+
+    getRecentUsers.push({
+      ...getRecipientWallet.dataValues,
+      user_details: { ...getRecipientUser.dataValues },
+    });
+  }
+
+  res.status(200).json({
+    success: true,
+    msg: "successfully get recent transfers users",
+    data: getRecentUsers,
+  });
+};
+
 const get_all_users = (req, res) => {
   res.status(200).json({
     msg: "hello, world!",
+    user_details: { ...getRecipientUser.dataValues },
   });
 };
 
 module.exports = {
   get_all_users,
   get_walet_info,
+  get_recent_transfer,
 
   register,
   login,

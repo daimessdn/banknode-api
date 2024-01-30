@@ -117,4 +117,56 @@ const get_transaction_history = async (req, res) => {
   }
 };
 
-module.exports = { transfer, get_transaction_history };
+const get_transaction_details = async (req, res) => {
+  const { id } = req.params;
+
+  try {
+    // get bank account info
+    let getTransaction = await Transaction.findOne({
+      where: {
+        id,
+      },
+    });
+
+    const fromDetails = await Wallet.findOne({
+      where: { id: getTransaction.transaction_from },
+      attributes: ["id", "name", "user_id"],
+    });
+    const userFromDetails = await User.findOne({
+      where: { id: fromDetails.user_id },
+      attributes: ["id", "name", "email"],
+    });
+
+    const toDetails = await Wallet.findOne({
+      where: { id: getTransaction.transaction_to },
+      attributes: ["id", "name", "user_id"],
+    });
+    const userToDetails = await User.findOne({
+      where: { id: toDetails.user_id },
+      attributes: ["id", "name", "email"],
+    });
+
+    res.status(200).json({
+      success: true,
+      msg: "successfully get transaction details",
+      data: {
+        ...getTransaction.dataValues,
+        transaction_from_details: {
+          ...fromDetails.dataValues,
+          user_details: userFromDetails,
+        },
+        transaction_to_details: {
+          ...toDetails.dataValues,
+          user_details: userToDetails,
+        },
+      },
+    });
+  } catch (error) {
+    res.status(400).json({
+      success: false,
+      msg: error.message,
+    });
+  }
+};
+
+module.exports = { transfer, get_transaction_history, get_transaction_details };
